@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 contract MedianOracle {
     int constant TICK_TRUNCATION = 30;
-    uint[8192] ringBuffer;
+    uint[65535] ringBuffer;
 
     int16 public currTick;
     uint16 public ringCurr;
@@ -14,6 +14,13 @@ contract MedianOracle {
         ringCurr = 0;
         ringSize = _ringSize;
         lastUpdate = uint64(block.timestamp);
+    }
+
+    /// @notice Grow ring buffer to larger size
+    /// @param newSize The new size of ring buffer
+    function grow(uint16 newSize) external {
+        require(newSize > ringSize, "New size is not greater than current size");
+        ringSize = newSize;
     }
 
     function updateOracle(int newTick) external {
