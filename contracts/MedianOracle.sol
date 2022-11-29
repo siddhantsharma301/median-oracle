@@ -6,6 +6,8 @@ contract MedianOracle {
     uint[65535] ringBuffer;
 
     int16 public currTick;
+    int16 public prevTick;
+    bool public beyondFirst;
     uint16 public ringCurr;
     uint16 public ringSize;
     uint64 public lastUpdate;
@@ -35,14 +37,20 @@ contract MedianOracle {
             newTick = quantiseTick(newTick);
 
             if (newTick == _currTick) return;
-
             uint elapsed = block.timestamp - _lastUpdate;
-
-            if (elapsed != 0) {
-                _ringCurr = (_ringCurr + 1) % _ringSize;
-                writeRing(_ringCurr, _currTick, clampTime(elapsed));
+            if ((newTick - _currTick == 1 || newTick - _currTick == -1) && (newTick == prevTick)) {
+                if (elapsed != 0) {
+                    _ringCurr = (_ringCurr + 1) % _ringSize;
+                    writeRing(_ringCurr, newTick, elapsed);
+                }
+            } else {
+                if (elapsed != 0) {
+                    _ringCurr = (_ringCurr + 1) % _ringSize;
+                    writeRing(_ringCurr, _currTick, clampTime(elapsed));
+                }
             }
 
+            prevTick = currTick;
             currTick = int16(newTick);
             ringCurr = uint16(_ringCurr);
             ringSize = uint16(_ringSize);
