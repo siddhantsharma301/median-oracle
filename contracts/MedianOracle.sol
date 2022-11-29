@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 contract MedianOracle {
     int constant TICK_TRUNCATION = 30;
     uint[65535] ringBuffer;
-
     int16 public currTick;
     int16 public prevTick;
     bool public beyondFirst;
@@ -39,22 +38,18 @@ contract MedianOracle {
             if (newTick == _currTick) return;
             uint elapsed = block.timestamp - _lastUpdate;
             if ((newTick - _currTick == 1 || newTick - _currTick == -1) && (newTick == prevTick)) {
-                if (elapsed != 0) {
-                    _ringCurr = (_ringCurr + 1) % _ringSize;
-                    writeRing(_ringCurr, newTick, elapsed);
-                }
+                currTick = int16(newTick);
+                ringCurr = uint16(_ringCurr);
+                ringSize = uint16(_ringSize);
             } else {
                 if (elapsed != 0) {
                     _ringCurr = (_ringCurr + 1) % _ringSize;
                     writeRing(_ringCurr, _currTick, clampTime(elapsed));
                 }
+                prevTick = currTick;
+                currTick = int16(newTick);
+                lastUpdate = uint64(block.timestamp);
             }
-
-            prevTick = currTick;
-            currTick = int16(newTick);
-            ringCurr = uint16(_ringCurr);
-            ringSize = uint16(_ringSize);
-            lastUpdate = uint64(block.timestamp);
         }
     }
 
