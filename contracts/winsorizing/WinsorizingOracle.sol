@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.5.0 <0.8.0;
 
-
 /// @title Winsorizing Oracle
 /// @notice Provides price and liquidity data useful for a wide variety of system designs
 /// @dev Instances of stored oracle data, "observations", are collected in the oracle array
@@ -15,6 +14,8 @@ library WinsorizingOracle {
         uint32 blockTimestamp;
         // the tick accumulator, i.e. tick * time elapsed since the pool was first initialized
         int56 tickCumulative;
+        // current tick
+        int56 tick;
         // the seconds per liquidity, i.e. seconds elapsed / max(1, liquidity) since the pool was first initialized
         uint160 secondsPerLiquidityCumulativeX128;
         // whether or not the observation is initialized
@@ -39,19 +40,20 @@ library WinsorizingOracle {
         bool winsorize
     ) private pure returns (Observation memory) {
         uint32 delta = blockTimestamp - last.blockTimestamp;
-        int56 currTick = int56(tick) * int56(delta);
+        int56 currTick = tick;
         if (winsorize) {
-            if (currTick >= MAX_TICKS) {
-            currTick = MAX_TICKS;
+            if (tick - last.tick >= MAX_TICKS) {
+                currTick = last.tick + MAX_TICKS;
             }
-            if (currTick <= -MAX_TICKS) {
-                currTick = -MAX_TICKS;
+            if (tick - last.tick <= -MAX_TICKS) {
+                currTick = last.tick - MAX_TICKS;
             }
         }
         return
             Observation({
                 blockTimestamp: blockTimestamp,
-                tickCumulative: last.tickCumulative + currTick,
+                tickCumulative: last.tickCumulative + currTick * delta,
+                tick: currTick,
                 secondsPerLiquidityCumulativeX128: last.secondsPerLiquidityCumulativeX128 +
                     ((uint160(delta) << 128) / (liquidity > 0 ? liquidity : 1)),
                 initialized: true
@@ -70,6 +72,7 @@ library WinsorizingOracle {
         self[0] = Observation({
             blockTimestamp: time,
             tickCumulative: 0,
+            tick: 0,
             secondsPerLiquidityCumulativeX128: 0,
             initialized: true
         });
@@ -111,7 +114,7 @@ library WinsorizingOracle {
         }
 
         indexUpdated = (index + 1) % cardinalityUpdated;
-        self[indexUpdated] = transform(last, blockTimestamp, tick, liquidity, false);
+        self[indexUpdated] = transform(last, blockTimestamp, tick, liquidity, last.tick > 0);
     }
 
     /// @notice Prepares the oracle array to store up to `next` observations

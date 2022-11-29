@@ -2,6 +2,7 @@
 pragma solidity =0.7.6;
 
 import './WinsorizingOracle.sol';
+import 'hardhat/console.sol';
 
 contract WinsorizingStubUniswapV3Pool {
     using WinsorizingOracle for WinsorizingOracle.Observation[65535];
