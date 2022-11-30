@@ -42,12 +42,8 @@ library WinsorizingOracle {
         uint32 delta = blockTimestamp - last.blockTimestamp;
         int56 currTick = tick;
         if (winsorize) {
-            if (tick - last.tick >= MAX_TICKS) {
-                currTick = last.tick + MAX_TICKS;
-            }
-            if (tick - last.tick <= -MAX_TICKS) {
-                currTick = last.tick - MAX_TICKS;
-            }
+            currTick = (tick - last.tick >= MAX_TICKS) ? (last.tick + MAX_TICKS) : currTick;
+            currTick = (tick - last.tick <= -MAX_TICKS) ? (last.tick - MAX_TICKS) : currTick;
         }
         return
             Observation({
