@@ -9,7 +9,7 @@ df = pd.DataFrame(query, columns=columns)
 
 def generate_oscillating(df):
     df = df[df.pairName =='USDC/WETH/3000']
-    price1, price2 = df["tick"].min(), df["tick"].max()
+    price1, price2 = 195298, 200510
     oscillating = np.empty((len(df),))
     oscillating[::2] = price1
     oscillating[1::2] = price2
