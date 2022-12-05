@@ -40,7 +40,7 @@ library WinsorizingOracle {
         bool winsorize
     ) private pure returns (Observation memory) {
         uint32 delta = blockTimestamp - last.blockTimestamp;
-        int56 currTick = tick;
+        int56 currTick = int56(tick);
         if (winsorize) {
             currTick = (tick - last.tick >= MAX_TICKS) ? (last.tick + MAX_TICKS) : currTick;
             currTick = (tick - last.tick <= -MAX_TICKS) ? (last.tick - MAX_TICKS) : currTick;
