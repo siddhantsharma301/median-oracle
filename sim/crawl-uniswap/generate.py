@@ -40,7 +40,7 @@ def generate_winsorize(df):
 def generate_winsorize_attack(df):
     def update_attack(idx, vals):
         length = len(idx)
-        peak = np.random.uniform(215000, 220000)
+        peak = np.random.uniform(215000, 225000)
         vals[idx] = np.linspace(vals[idx[0]], peak, num=length)
         return vals
     df = df[df.pairName == 'USDC/WETH/3000']
@@ -61,6 +61,6 @@ def generate_winsorize_attack(df):
     conn = sqlite3.connect("attack.db")
     df.to_sql('Swap', con=conn, if_exists='replace')
 
-generate_oscillating(df.copy())
+# generate_oscillating(df.copy())
 generate_winsorize_attack(df.copy())
-generate_winsorize(df.copy())
+# generate_winsorize(df.copy())
